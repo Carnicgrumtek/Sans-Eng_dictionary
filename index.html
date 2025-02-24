@@ -36,52 +36,80 @@
             margin: 5px 0;
             border-radius: 5px;
         }
+        .results h3 {
+            color: #333;
+        }
     </style>
 </head>
 <body>
     <h1>Sanskrit-English Dictionary</h1>
-    <input type="text" id="query" placeholder="Enter Sanskrit word in ITRANS or Roman diacritics...">
-    <button onclick="searchWord()">Search</button>
+    <input type="text" id="query" placeholder="Enter words separated by commas...">
+    <button onclick="searchWords()">Search</button>
     <div class="results" id="results"></div>
 
     <script>
-        async function searchWord() {
+        const dictionaries = [
+            "MW", "MD", "WIL", "AP90", "YAT", "BEN", "CAE", "LRV", "SHS", "ACT"
+        ];
+
+        async function searchWords() {
             const query = document.getElementById("query").value.trim();
             const resultsContainer = document.getElementById("results");
             resultsContainer.innerHTML = "";
 
             if (query === "") {
-                alert("Please enter a word to search.");
+                alert("Please enter at least one word.");
                 return;
             }
 
-            const corsProxy = "https://api.allorigins.win/get?url=";
-            const apiUrl = `https://sanskritdictionaryapi.herokuapp.com/${query}`;
+            const words = query.split(",").map(word => word.trim());
 
-            try {
-                const response = await fetch(corsProxy + encodeURIComponent(apiUrl));
-                if (!response.ok) throw new Error("Network response was not ok");
+            for (let word of words) {
+                const wordDiv = document.createElement("div");
+                wordDiv.innerHTML = `<h2>${word}</h2>`;
+                resultsContainer.appendChild(wordDiv);
 
-                const data = await response.json();
-                const parsedData = JSON.parse(data.contents);
+                for (let dict of dictionaries) {
+                    if (dict === "ACT") {
+                        const dictDiv = document.createElement("div");
+                        dictDiv.innerHTML = `<h3>${dict} Dictionary (Custom):</h3>`;
+                        dictDiv.innerHTML += "<p>This is a placeholder for custom results or manual input.</p>";
+                        wordDiv.appendChild(dictDiv);
+                        continue;
+                    }
 
-                if (parsedData && parsedData.meanings && parsedData.meanings.length > 0) {
-                    const meanings = parsedData.meanings;
-                    const ul = document.createElement("ul");
+                    const apiUrl = `https://www.sanskrit-lexicon.uni-koeln.de/scans/${dict}Scan/2020/web/webtc/getword.php?key=${encodeURIComponent(word)}&output=json`;
 
-                    meanings.forEach(meaning => {
-                        const li = document.createElement("li");
-                        li.innerText = meaning;
-                        ul.appendChild(li);
-                    });
+                    try {
+                        const response = await fetch(apiUrl);
+                        if (!response.ok) throw new Error("Network response was not ok");
 
-                    resultsContainer.appendChild(ul);
-                } else {
-                    resultsContainer.innerHTML = "<p>No result found.</p>";
+                        const data = await response.json();
+
+                        const dictDiv = document.createElement("div");
+                        dictDiv.innerHTML = `<h3>${dict} Dictionary:</h3>`;
+
+                        if (data && data.length > 0) {
+                            const ul = document.createElement("ul");
+
+                            data.forEach(entry => {
+                                const li = document.createElement("li");
+                                li.innerHTML = entry.sanskrit + ": " + entry.english;
+                                ul.appendChild(li);
+                            });
+
+                            dictDiv.appendChild(ul);
+                        } else {
+                            dictDiv.innerHTML += "<p>No result found.</p>";
+                        }
+
+                        wordDiv.appendChild(dictDiv);
+
+                    } catch (error) {
+                        console.error("Error fetching data:", error);
+                        wordDiv.innerHTML += `<p>Error fetching data for ${dict}. Please try again later.</p>`;
+                    }
                 }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-                resultsContainer.innerHTML = "<p>Error fetching data. Please try again later.</p>";
             }
         }
     </script>
