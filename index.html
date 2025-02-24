@@ -1,104 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sanskrit-English Dictionary</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f9;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-        }
-        textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            padding: 10px 20px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #0056b3;
-        }
-        .result {
-            background: white;
-            padding: 10px;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        .result h2 {
-            margin-bottom: 10px;
-        }
-        .result ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-    </style>
 </head>
 <body>
     <h1>Sanskrit-English Dictionary</h1>
-    <textarea id="inputWords" rows="4" placeholder="Enter words in IAST, ITRANS, or Devanagari..."></textarea>
-    <button onclick="lookupWords()">Search</button>
-    <div id="results"></div>
-    <script>
-        const apiUrls = [
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/mw/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/md/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/wil/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ap90/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/yat/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ben/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/cae/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/lrv/restful/',
-            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/shs/restful/'
-        ];
+    <input type="text" id="search" placeholder="Enter Sanskrit word">
+    <button onclick="searchWord()">Search</button>
+    <div id="results"></div><script>
+    async function searchWord() {
+        const query = document.getElementById("search").value;
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
 
-        async function lookupWords() {
-            const input = document.getElementById('inputWords').value;
-            const words = input.split(/\s+/).filter(Boolean);
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<p>Loading...</p>';
+        if (!query) return;
 
-            const allResults = await Promise.all(words.map(async word => {
-                const meanings = await Promise.all(apiUrls.map(async url => {
-                    try {
-                        const res = await fetch(url + encodeURIComponent(word));
-                        const text = await res.text();
-                        return text ? text : 'No result';
-                    } catch {
-                        return 'Error fetching data';
-                    }
-                }));
-                return { word, meanings };
-            }));
+        try {
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=${query}`)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, "text/html");
+            const defList = doc.querySelectorAll(".hwextra");
 
-            resultsDiv.innerHTML = '';
-            allResults.forEach(result => {
-                const wordDiv = document.createElement('div');
-                wordDiv.className = 'result';
-                wordDiv.innerHTML = `<h2>${result.word}</h2>`;
-                const list = document.createElement('ul');
-                result.meanings.forEach(meaning => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = meaning;
-                    list.appendChild(listItem);
+            if (defList.length > 0) {
+                defList.forEach(def => {
+                    const item = document.createElement("div");
+                    item.innerHTML = def.innerHTML;
+                    resultsDiv.appendChild(item);
                 });
-                wordDiv.appendChild(list);
-                resultsDiv.appendChild(wordDiv);
-            });
+            } else {
+                resultsDiv.innerHTML = "<p>No result found.</p>";
+            }
+        } catch (error) {
+            resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
         }
-    </script>
+    }
+</script>
+
 </body>
 </html>
