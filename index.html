@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,18 +52,17 @@
     <textarea id="inputWords" rows="4" placeholder="Enter words in IAST, ITRANS, or Devanagari..."></textarea>
     <button onclick="lookupWords()">Search</button>
     <div id="results"></div>
-
     <script>
         const apiUrls = [
-            'https://api.c-salt.uni-koeln.de/dicts/mw/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/md/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/wil/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/ap90/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/yat/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/ben/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/cae/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/lrv/restful/',
-            'https://api.c-salt.uni-koeln.de/dicts/shs/restful/'
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/mw/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/md/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/wil/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ap90/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/yat/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ben/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/cae/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/lrv/restful/',
+            'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/shs/restful/'
         ];
 
         async function lookupWords() {
@@ -77,9 +75,9 @@
                 const meanings = await Promise.all(apiUrls.map(async url => {
                     try {
                         const res = await fetch(url + encodeURIComponent(word));
-                        const json = await res.json();
-                        return json?.content ? json.content : 'No result';
-                    } catch (error) {
+                        const text = await res.text();
+                        return text ? text : 'No result';
+                    } catch {
                         return 'Error fetching data';
                     }
                 }));
