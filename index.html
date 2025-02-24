@@ -16,18 +16,24 @@
 
         async function fetchDefinition(word, dict) {
             try {
-                const proxyUrl = 'https://api.allorigins.win/get?url=';
+                const proxyUrl = 'https://corsproxy.io/?';
                 const apiUrl = `https://www.sanskrit-lexicon.uni-koeln.de/scans/${dict}Scan/2020/web/webtc/getword.php?key=${encodeURIComponent(word)}&output=json`;
                 const response = await fetch(proxyUrl + encodeURIComponent(apiUrl));
-                const data = await response.json();
-                if (data.contents) {
-                    return JSON.parse(data.contents);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.DICT) {
+                        return data.DICT;
+                    } else {
+                        return ["No result found."];
+                    }
                 } else {
-                    return null;
+                    console.error(`HTTP error: ${response.status}`);
+                    return ["Error fetching data. Please try again later."];
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
-                return null;
+                return ["Error fetching data. Please try again later."];
             }
         }
 
@@ -43,21 +49,16 @@
                 for (const dict of dictionaries) {
                     const resultList = document.createElement('ul');
                     const resultTitle = document.createElement('h3');
-                    resultTitle.textContent = dict;
+                    resultTitle.textContent = dict.toUpperCase();
                     resultList.appendChild(resultTitle);
 
-                    const definitionData = await fetchDefinition(word, dict);
-                    if (definitionData && definitionData.DICT) {
-                        definitionData.DICT.forEach(entry => {
-                            const listItem = document.createElement('li');
-                            listItem.textContent = entry;
-                            resultList.appendChild(listItem);
-                        });
-                    } else {
+                    const definitions = await fetchDefinition(word, dict);
+                    definitions.forEach(entry => {
                         const listItem = document.createElement('li');
-                        listItem.textContent = "No result found.";
+                        listItem.textContent = entry;
                         resultList.appendChild(listItem);
-                    }
+                    });
+
                     wordSection.appendChild(resultList);
                 }
                 resultsContainer.appendChild(wordSection);
