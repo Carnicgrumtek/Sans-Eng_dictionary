@@ -16,7 +16,7 @@
 
         async function fetchDefinition(word, dict) {
             try {
-                const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
+                const proxyUrl = 'https://corsproxy.io/?';
                 const apiUrl = `https://www.sanskrit-lexicon.uni-koeln.de/scans/${dict}Scan/2020/web/webtc/getword.php?key=${encodeURIComponent(word)}&output=json`;
                 const response = await fetch(proxyUrl + encodeURIComponent(apiUrl), {
                     method: 'GET',
