@@ -1,0 +1,319 @@
+			
+				&lt;!DOCTYPE html&gt;
+			
+			
+				&lt;html lang="en"&gt;
+			
+			
+				&lt;head&gt;
+			
+			
+				 &lt;meta charset="UTF-8"&gt;
+			
+			
+				 &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+			
+			
+				 &lt;title&gt;Sanskrit-English Dictionary&lt;/title&gt;
+			
+			
+				 &lt;style&gt;
+			
+			
+				 body {
+			
+			
+				 font-family: Arial, sans-serif;
+			
+			
+				 background: #f4f4f9;
+			
+			
+				 padding: 20px;
+			
+			
+				 }
+			
+			
+				 h1 {
+			
+			
+				 text-align: center;
+			
+			
+				 }
+			
+			
+				 textarea {
+			
+			
+				 width: 100%;
+			
+			
+				 padding: 10px;
+			
+			
+				 margin-bottom: 10px;
+			
+			
+				 border-radius: 5px;
+			
+			
+				 border: 1px solid #ccc;
+			
+			
+				 }
+			
+			
+				 button {
+			
+			
+				 padding: 10px 20px;
+			
+			
+				 background: #007bff;
+			
+			
+				 color: white;
+			
+			
+				 border: none;
+			
+			
+				 border-radius: 5px;
+			
+			
+				 cursor: pointer;
+			
+			
+				 }
+			
+			
+				 button:hover {
+			
+			
+				 background: #0056b3;
+			
+			
+				 }
+			
+			
+				 .result {
+			
+			
+				 background: white;
+			
+			
+				 padding: 10px;
+			
+			
+				 margin-top: 20px;
+			
+			
+				 border-radius: 5px;
+			
+			
+				 box-shadow: 0 0 10px rgba(0,0,0,0.1);
+			
+			
+				 }
+			
+			
+				 .result h2 {
+			
+			
+				 margin-bottom: 10px;
+			
+			
+				 }
+			
+			
+				 .result ul {
+			
+			
+				 list-style-type: disc;
+			
+			
+				 padding-left: 20px;
+			
+			
+				 }
+			
+			
+				 &lt;/style&gt;
+			
+			
+				&lt;/head&gt;
+			
+			
+				&lt;body&gt;
+			
+			
+				 &lt;h1&gt;Sanskrit-English Dictionary&lt;/h1&gt;
+			
+			
+				 &lt;textarea id="inputWords" rows="4" placeholder="Enter words in IAST, ITRANS, or Devanagari..."&gt;&lt;/textarea&gt;
+			
+			
+				 &lt;button onclick="lookupWords()"&gt;Search&lt;/button&gt;
+			
+			
+				 &lt;div id="results"&gt;&lt;/div&gt;
+			
+			
+				
+			
+			
+				 &lt;script&gt;
+			
+			
+				 const apiUrls = [
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/mw/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/md/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/wil/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ap90/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/yat/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/ben/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/cae/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/lrv/restful/',
+			
+			
+				 'https://api.allorigins.win/raw?url=https://api.c-salt.uni-koeln.de/dicts/shs/restful/'
+			
+			
+				 ];
+			
+			
+				
+			
+			
+				 async function lookupWords() {
+			
+			
+				 const input = document.getElementById('inputWords').value;
+			
+			
+				 const words = input.split(/\s+/).filter(Boolean);
+			
+			
+				 const resultsDiv = document.getElementById('results');
+			
+			
+				 resultsDiv.innerHTML = '&lt;p&gt;Loading...&lt;/p&gt;';
+			
+			
+				
+			
+			
+				 const allResults = await Promise.all(words.map(async word =&gt; {
+			
+			
+				 const meanings = await Promise.all(apiUrls.map(async url =&gt; {
+			
+			
+				 try {
+			
+			
+				 const res = await fetch(url + encodeURIComponent(word));
+			
+			
+				 const json = await res.json();
+			
+			
+				 return json?.content ? json.content : 'No result';
+			
+			
+				 } catch {
+			
+			
+				 return 'Error fetching data';
+			
+			
+				 }
+			
+			
+				 }));
+			
+			
+				 meanings.push('Placeholder dictionary: No result');
+			
+			
+				 return { word, meanings };
+			
+			
+				 }));
+			
+			
+				
+			
+			
+				 resultsDiv.innerHTML = '';
+			
+			
+				 allResults.forEach(result =&gt; {
+			
+			
+				 const wordDiv = document.createElement('div');
+			
+			
+				 wordDiv.className = 'result';
+			
+			
+				 wordDiv.innerHTML = `&lt;h2&gt;${result.word}&lt;/h2&gt;`;
+			
+			
+				 const list = document.createElement('ul');
+			
+			
+				 result.meanings.forEach(meaning =&gt; {
+			
+			
+				 const listItem = document.createElement('li');
+			
+			
+				 listItem.textContent = meaning;
+			
+			
+				 list.appendChild(listItem);
+			
+			
+				 });
+			
+			
+				 wordDiv.appendChild(list);
+			
+			
+				 resultsDiv.appendChild(wordDiv);
+			
+			
+				 });
+			
+			
+				 }
+			
+			
+				 &lt;/script&gt;
+			
+			
+				&lt;/body&gt;
+			
+			
+				&lt;/html&gt;
+			
+	<a href="https://wordtohtml.net" target="_blank" style="font-size:11px; color: #d0d0d0">Converted to HTML with WordToHTML.net</a> <span style="font-size:11px; color: #d0d0d0">|</span> <a href="https://wordtohtml.net" target="_blank" style="font-size:11px; color: #d0d0d0">Email Signature Generator</a>
